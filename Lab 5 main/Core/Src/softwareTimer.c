@@ -6,8 +6,6 @@
  */
 
 
-#include "softwareTimer.h"
-
 int timer1_counter = 0;
 int timer1_flag = 0;
 

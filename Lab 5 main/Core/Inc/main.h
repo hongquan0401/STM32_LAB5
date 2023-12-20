@@ -47,6 +47,7 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 extern UART_HandleTypeDef huart2;
+extern ADC_HandleTypeDef hadc1;
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
