@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include "global.h"
+#include "command_parser.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,11 +64,26 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t temp = 0;
-
+uint8_t check = 0;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if (huart->Instance == USART2){
 		HAL_UART_Transmit(&huart2, &temp, 1, 50);
+		if (check == 1){
+			if (temp != '#'){
+				buffer[index_buffer++] = temp;
+				// buffer_flag = 1;
+				if (index_buffer == MAX_BUFFER_SIZE){
+					check = 0;
+					clear_buffer();
+				}
+			} else{
+				buffer_flag = 1;
+				check = 0;
+			}
+		}
+		if (temp == '!'){
+			check = 1;
+		}
 		HAL_UART_Receive_IT(&huart2, &temp, 1);
 	}
 }
@@ -112,13 +129,31 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   uint16_t ADC_value = 0;
-  void* str;
+  void *str = NULL;
   while (1)
   {
-	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	  ADC_value = HAL_ADC_GetValue(&hadc1);
-	  HAL_UART_Transmit(&huart2,(void*) str, sprintf(str,"%d\r",ADC_value), 1000);
-	  HAL_Delay(500);
+	  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+//	  HAL_UART_Transmit(&huart2,(void*) str, sprintf(str,"%d\r",ADC_value), 1000);
+//	  HAL_Delay(500);
+
+	  if (buffer_flag == 1){
+		  //TODO fsm
+		  command_parser_fsm();
+		  buffer_flag = 0;
+	  }
+	  // TODO fsm
+	  switch (data_cmd) {
+		case RST_CMD:
+			ADC_value = HAL_ADC_GetValue(&hadc1);
+			HAL_UART_Transmit(&huart2,(void*) str, sprintf(str,"%d\r",ADC_value), 1000);
+			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+			data_cmd = 0;
+			break;
+		default:
+//			HAL_UART_Transmit(&huart2,(void*) str, sprintf(str,"\r%d\r",data_cmd+1000), 200);
+			break;
+	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
